@@ -143,10 +143,21 @@ li {
 .save-edit-btn { background-color: var(--main-blue); color: white; border: none; border-radius: 6px; padding: 8px 15px; cursor: pointer; }
 .cancel-edit-btn { background-color: #b0bec5; color: white; border: none; border-radius: 6px; padding: 8px 15px; cursor: pointer; }
 
-/* 현재시간 버튼 */
+/* ★ 수정된 현재시간 버튼 (작고 귀엽게) */
 .now-btn {
-    background-color: #607d8b; color: white; border: none; border-radius: 6px; 
-    padding: 0 10px; font-size: 12px; cursor: pointer;
+    background-color: #eceff1; /* 연한 회색 배경 */
+    color: #607d8b; /* 짙은 회색 글씨 */
+    border: 1px solid #cfd8dc; /* 은은한 테두리 */
+    border-radius: 8px; 
+    padding: 0 10px; 
+    font-size: 11px; 
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: 0.2s;
+}
+.now-btn:active {
+    background-color: #cfd8dc;
 }
 
 /* 엑셀 다운로드 버튼 */
