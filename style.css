@@ -1,9 +1,8 @@
-/* 진한 파랑 테마로 변경 */
+/* 부드러운 파스텔 블루 테마 */
 :root {
-    --bg-color: #f0f8ff;
-    --me-blue: #1565c0;      /* 나: 진한 파랑 (N빵 색과 통일) */
-    --hyung-pink: #ec407a;   /* 형: 핫핑크 */
-    --text-dark: #37474f;
+    --bg-color: #f0f8ff;       /* 아주 연한 하늘색 배경 */
+    --main-blue: #42a5f5;      /* 메인 파스텔 블루 (너무 진하지 않게) */
+    --text-dark: #37474f;      /* 진한 회색 텍스트 */
     --white: #ffffff;
 }
 
@@ -12,24 +11,23 @@ body {
     background-color: var(--bg-color);
     margin: 0;
     padding: 15px;
-    /* 모바일 스크롤 문제 해결: 하단 여백 충분히 확보 */
-    padding-bottom: 100px; 
+    padding-bottom: 100px; /* 모바일 스크롤 여백 */
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
     color: var(--text-dark);
-    min-height: 100vh; /* 전체 화면 높이 확보 */
+    min-height: 100vh;
     box-sizing: border-box;
 }
 
-h2 { text-align: center; color: #455a64; margin-bottom: 20px; }
+h2 { text-align: center; color: #546e7a; margin-bottom: 20px; }
 
 /* 입력 폼 */
 .input-group {
     background: var(--white);
     padding: 20px;
     border-radius: 20px;
-    box-shadow: 0 8px 20px rgba(21, 101, 192, 0.15); /* 그림자도 진하게 */
+    box-shadow: 0 8px 20px rgba(66, 165, 245, 0.15); /* 그림자도 부드럽게 */
     margin-bottom: 25px;
     border: 1px solid #bbdefb;
 }
@@ -54,28 +52,28 @@ input, select {
 }
 input[type="radio"] { display: none; }
 
-/* 색상 변경 부분 */
-/* 내가 냄 -> 진한 파랑 */
-#payer-me:checked + label {
-    background: var(--me-blue); color: white;
-    box-shadow: 0 4px 10px rgba(21, 101, 192, 0.4);
-}
-/* 형이 냄 -> 분홍 */
+/* ★ 색상 통일 핵심 부분 ★ */
+/* 내가 냄 & 형이 냄 둘 다 같은 파란색 */
+#payer-me:checked + label,
 #payer-hyung:checked + label {
-    background: var(--hyung-pink); color: white;
-    box-shadow: 0 4px 10px rgba(236, 64, 122, 0.4);
+    background: var(--main-blue); color: white;
+    box-shadow: 0 4px 10px rgba(66, 165, 245, 0.4);
 }
 
-/* 지출 타입 버튼 */
+/* 지출 타입 버튼 (약간 톤다운된 색) */
 .type-group input[type="radio"]:checked + label {
-    background: #546e7a; color: white;
+    background: #78909c; color: white;
+    box-shadow: 0 4px 10px rgba(120, 144, 156, 0.4);
 }
 
+/* 저장 버튼 */
 .save-btn {
-    width: 100%; padding: 15px; background-color: var(--me-blue);
+    width: 100%; padding: 15px; background-color: var(--main-blue);
     color: white; font-size: 18px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer;
-    box-shadow: 0 4px 10px rgba(21, 101, 192, 0.3);
+    box-shadow: 0 4px 10px rgba(66, 165, 245, 0.3);
+    transition: background-color 0.2s;
 }
+.save-btn:hover { background-color: #2196f3; } /* 호버 시 살짝 진하게 */
 
 /* 정산 요약 */
 .summary-container { margin-bottom: 30px; }
@@ -85,11 +83,10 @@ input[type="radio"] { display: none; }
 }
 .shared-box {
     background: #e3f2fd; margin-bottom: 10px; border: 1px solid #90caf9;
-    position: relative;
 }
 .settlement-msg {
     margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);
-    font-size: 16px; font-weight: bold; color: #d81b60;
+    font-size: 16px; font-weight: bold; color: #d81b60; /* 정산 메시지는 강조색 유지 */
 }
 
 .personal-row { display: flex; gap: 10px; }
@@ -107,15 +104,15 @@ li {
 }
 
 .payer-mark { font-weight: bold; margin-right: 3px; font-size: 14px; }
-.text-me { color: var(--me-blue); }
-.text-hyung { color: var(--hyung-pink); }
+/* 리스트 글자 색도 파란색으로 통일 */
+.text-me, .text-hyung { color: var(--main-blue); }
 
 .badge {
     font-size: 11px; padding: 3px 8px; border-radius: 6px;
     margin-right: 5px; font-weight: bold; vertical-align: middle;
 }
-/* N빵 배지도 진한 파랑으로 통일 */
-.badge.shared { background: #e3f2fd; color: var(--me-blue); border: 1px solid #bbdefb; } 
+/* N빵 배지도 같은 파란색 톤으로 */
+.badge.shared { background: #e3f2fd; color: var(--main-blue); border: 1px solid #bbdefb; } 
 .badge.personal { background: #f5f5f5; color: #757575; border: 1px solid #e0e0e0; }
 
 .item-date { font-size: 12px; color: #b0bec5; margin-top: 5px; }
@@ -128,5 +125,5 @@ li {
 
 /* 수정창 */
 .edit-box { width: 100%; background: #fafafa; padding: 10px; border-radius: 10px; border: 1px solid #eee; }
-.save-edit-btn { background-color: var(--me-blue); color: white; border: none; border-radius: 6px; padding: 8px 15px; cursor: pointer; }
+.save-edit-btn { background-color: var(--main-blue); color: white; border: none; border-radius: 6px; padding: 8px 15px; cursor: pointer; }
 .cancel-edit-btn { background-color: #b0bec5; color: white; border: none; border-radius: 6px; padding: 8px 15px; cursor: pointer; }
