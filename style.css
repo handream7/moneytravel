@@ -1,8 +1,8 @@
-/* 파스텔 블루 테마 */
+/* 파스텔 톤 테마 */
 :root {
     --bg-color: #f0f8ff;
-    --main-blue: #90caf9;
-    --deep-blue: #42a5f5;
+    --me-blue: #42a5f5;      /* 나: 파랑 */
+    --hyung-pink: #ec407a;   /* 형: 핫핑크 */
     --text-dark: #37474f;
     --white: #ffffff;
 }
@@ -40,21 +40,35 @@ input, select {
     background-color: #fbfbfb;
 }
 
+/* 라디오 버튼 그룹 */
 .radio-label { font-size: 14px; color: #78909c; margin-bottom: 5px; font-weight: bold; }
 .radio-group { display: flex; gap: 8px; margin-bottom: 15px; }
 .radio-group label {
     flex: 1; text-align: center; background: #eceff1; color: #607d8b;
-    padding: 10px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 14px;
+    padding: 12px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 15px;
+    transition: 0.2s;
 }
 input[type="radio"] { display: none; }
-input[type="radio"]:checked + label {
-    background: var(--main-blue); color: white;
-    box-shadow: 0 4px 10px rgba(144, 202, 249, 0.4);
+
+/* ★★★ 색상 변경 핵심 부분 ★★★ */
+/* 내가 냄 -> 파랑 */
+#payer-me:checked + label {
+    background: var(--me-blue); color: white;
+    box-shadow: 0 4px 10px rgba(66, 165, 245, 0.4);
 }
-.type-group input[type="radio"]:checked + label { background: var(--deep-blue); }
+/* 형이 냄 -> 분홍 (확실히 다르게!) */
+#payer-hyung:checked + label {
+    background: var(--hyung-pink); color: white;
+    box-shadow: 0 4px 10px rgba(236, 64, 122, 0.4);
+}
+
+/* 지출 타입 버튼 (공동/개인) */
+.type-group input[type="radio"]:checked + label {
+    background: #78909c; color: white; /* 타입은 중립적인 색 */
+}
 
 .save-btn {
-    width: 100%; padding: 15px; background-color: var(--deep-blue);
+    width: 100%; padding: 15px; background-color: var(--me-blue);
     color: white; font-size: 18px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer;
 }
 
@@ -64,7 +78,16 @@ input[type="radio"]:checked + label {
     background: white; border-radius: 15px; padding: 15px;
     text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
-.shared-box { background: #e3f2fd; margin-bottom: 10px; border: 1px solid #bbdefb; }
+.shared-box {
+    background: #e3f2fd; margin-bottom: 10px; border: 1px solid #bbdefb;
+    position: relative;
+}
+/* 정산 결과 메시지 강조 */
+.settlement-msg {
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);
+    font-size: 16px; font-weight: bold; color: #d81b60;
+}
+
 .personal-row { display: flex; gap: 10px; }
 .personal-box { flex: 1; background: white; border: 1px solid #eee; }
 .box-title { font-size: 13px; color: #78909c; margin-bottom: 5px; }
@@ -80,16 +103,16 @@ li {
 }
 
 .payer-mark { font-weight: bold; margin-right: 3px; font-size: 14px; }
-.text-blue { color: var(--deep-blue); }
-.text-purple { color: #ab47bc; }
+/* 리스트 글자 색도 버튼과 깔맞춤 */
+.text-me { color: var(--me-blue); }
+.text-hyung { color: var(--hyung-pink); }
 
-/* 배지 스타일 강화 */
 .badge {
     font-size: 11px; padding: 3px 8px; border-radius: 6px;
     margin-right: 5px; font-weight: bold; vertical-align: middle;
 }
-.badge.shared { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; } /* N빵 */
-.badge.personal { background: #f3e5f5; color: #7b1fa2; border: 1px solid #e1bee7; } /* 개인 */
+.badge.shared { background: #e3f2fd; color: #1565c0; } 
+.badge.personal { background: #f5f5f5; color: #757575; }
 
 .item-date { font-size: 12px; color: #b0bec5; margin-top: 5px; }
 .price-text { color: #455a64; font-size: 16px; margin-right: 8px;}
@@ -101,5 +124,5 @@ li {
 
 /* 수정창 */
 .edit-box { width: 100%; background: #fafafa; padding: 10px; border-radius: 10px; border: 1px solid #eee; }
-.save-edit-btn { background-color: var(--deep-blue); color: white; border: none; border-radius: 6px; padding: 8px 15px; cursor: pointer; }
+.save-edit-btn { background-color: var(--me-blue); color: white; border: none; border-radius: 6px; padding: 8px 15px; cursor: pointer; }
 .cancel-edit-btn { background-color: #b0bec5; color: white; border: none; border-radius: 6px; padding: 8px 15px; cursor: pointer; }
