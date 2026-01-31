@@ -92,36 +92,21 @@ input[type="radio"] { display: none; }
 .box-title { font-size: 13px; color: #78909c; margin-bottom: 5px; }
 .box-value { font-size: 20px; font-weight: bold; color: #37474f; }
 
-/* ★ 필터 영역 스타일 */
+/* 필터 영역 */
 .list-header { font-weight: bold; color: #546e7a; margin-bottom: 10px; padding-left: 5px; }
-.filter-container {
-    margin-bottom: 15px;
-}
-.filter-row {
-    display: flex; gap: 5px; overflow-x: auto;
-}
+.filter-container { margin-bottom: 15px; }
+.filter-row { display: flex; gap: 5px; overflow-x: auto; }
 .filter-btn {
-    flex: 1;
-    border: 1px solid #cfd8dc;
-    background: white;
-    color: #607d8b;
-    padding: 8px 5px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: bold;
-    cursor: pointer;
-    white-space: nowrap;
+    flex: 1; border: 1px solid #cfd8dc; background: white; color: #607d8b;
+    padding: 8px 5px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap;
 }
 .filter-btn.active {
-    background: var(--main-blue);
-    color: white;
-    border-color: var(--main-blue);
+    background: var(--main-blue); color: white; border-color: var(--main-blue);
     box-shadow: 0 2px 5px rgba(66, 165, 245, 0.3);
 }
 .custom-date-box {
     display: flex; gap: 5px; align-items: center;
-    background: #fff; padding: 10px; border-radius: 10px; margin-top: 5px;
-    border: 1px solid #ddd;
+    background: #fff; padding: 10px; border-radius: 10px; margin-top: 5px; border: 1px solid #ddd;
 }
 .custom-date-box input { margin: 0; padding: 8px; font-size: 13px; }
 
@@ -157,3 +142,17 @@ li {
 .edit-box input[type="datetime-local"] { background: white; font-family: inherit; color: #333; }
 .save-edit-btn { background-color: var(--main-blue); color: white; border: none; border-radius: 6px; padding: 8px 15px; cursor: pointer; }
 .cancel-edit-btn { background-color: #b0bec5; color: white; border: none; border-radius: 6px; padding: 8px 15px; cursor: pointer; }
+
+/* 엑셀 다운로드 버튼 (초록색) */
+.download-btn {
+    background-color: #2e7d32;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
+    margin-bottom: 20px;
+}

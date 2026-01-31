@@ -19,10 +19,10 @@ const db = getFirestore(app);
 
 let expenseList = [];
 
-// ★ 필터 상태 관리 변수
+// 필터 기본값
 let currentFilter = {
-    month: 'all', // 'all', '2', '3', 'custom'
-    category: 'all', // 'all', 'me', 'hyung', 'settlement'
+    month: 'all', 
+    category: 'all', 
     startDate: '',
     endDate: ''
 };
@@ -187,14 +187,11 @@ window.deleteExpense = async function(id) {
     try { await deleteDoc(doc(db, "expenses", id)); } catch(e){}
 }
 
-// ★ 필터 변경 함수들
 window.setMonthFilter = function(month) {
     currentFilter.month = month;
-    // 버튼 스타일 업데이트
     document.querySelectorAll('.filter-btn.month').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`btn-month-${month}`).classList.add('active');
-
-    // 직접 설정 입력창 토글
+    
     const customBox = document.getElementById('custom-date-box');
     if (month === 'custom') customBox.style.display = 'flex';
     else customBox.style.display = 'none';
@@ -204,25 +201,71 @@ window.setMonthFilter = function(month) {
 
 window.setCategoryFilter = function(cat) {
     currentFilter.category = cat;
-    // 버튼 스타일 업데이트
     document.querySelectorAll('.filter-btn.cat').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`btn-cat-${cat}`).classList.add('active');
-
     renderList();
 }
 
-// 직접 설정 날짜 변경 시 바로 반영
 window.setCustomDate = function() {
     currentFilter.startDate = document.getElementById('start-date').value;
     currentFilter.endDate = document.getElementById('end-date').value;
     renderList();
 }
 
+// ★ 엑셀 다운로드 함수 (추가됨)
+window.downloadCSV = function() {
+    if (expenseList.length === 0) {
+        alert("저장할 내역이 없습니다.");
+        return;
+    }
+
+    // CSV 내용 만들기
+    // 1. 헤더 (BOM 추가하여 한글 깨짐 방지)
+    let csvContent = "\uFEFF날짜,시간,내용,금액,누가냈나,종류\n";
+
+    // 2. 데이터 한 줄씩 추가
+    // (현재 필터링된 화면 기준이 아니라, 전체 데이터를 다 다운로드합니다)
+    expenseList.forEach(item => {
+        const typeMap = {
+            'shared': 'N빵(공동)',
+            'personal': '개인',
+            'settlement': '중간정산'
+        };
+        const payerMap = { 'me': '나', 'hyung': '형' };
+        
+        // 날짜와 시간 분리 (Excel 보기 편하게)
+        let datePart = item.date.split(' ')[0] || item.date;
+        let timePart = item.date.split(' ')[1] || '';
+
+        // 내용에 쉼표(,)가 있으면 엑셀 칸이 밀리므로 따옴표로 감싸줌
+        const safeDesc = `"${item.desc.replace(/"/g, '""')}"`;
+        
+        const row = [
+            datePart,
+            timePart,
+            safeDesc,
+            item.price,
+            payerMap[item.payer],
+            typeMap[item.type || 'shared']
+        ].join(",");
+        
+        csvContent += row + "\n";
+    });
+
+    // 다운로드 링크 생성 및 클릭
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "태국여행_가계부.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 
 function renderList() {
     const list = document.getElementById('expense-list');
     
-    // 1. 전체 데이터 기준으로 정산 계산 (필터 무관하게!)
     let totalShared = 0;      
     let sharedMe = 0;         
     let sharedHyung = 0;      
@@ -249,24 +292,19 @@ function renderList() {
         }
     });
 
-    // 2. 화면에 표시할 리스트 필터링
     let filteredList = expenseList.filter(item => {
         const d = item.realDate ? new Date(item.realDate) : new Date(item.timestamp);
         
-        // (1) 월 필터
         if (currentFilter.month === '2' && d.getMonth() !== 1) return false;
         if (currentFilter.month === '3' && d.getMonth() !== 2) return false;
         if (currentFilter.month === 'custom') {
             const start = currentFilter.startDate ? new Date(currentFilter.startDate) : null;
             const end = currentFilter.endDate ? new Date(currentFilter.endDate) : null;
-            // 끝나는 날짜는 그날 23:59:59까지 포함하도록 보정
             if (end) end.setHours(23, 59, 59);
-
             if (start && d < start) return false;
             if (end && d > end) return false;
         }
 
-        // (2) 카테고리 필터 (내가냄, 형이냄, 정산)
         if (currentFilter.category === 'me' && item.payer !== 'me') return false;
         if (currentFilter.category === 'hyung' && item.payer !== 'hyung') return false;
         if (currentFilter.category === 'settlement' && item.type !== 'settlement') return false;
@@ -274,8 +312,6 @@ function renderList() {
         return true;
     });
 
-
-    // 3. 필터링된 리스트 그리기
     list.innerHTML = '';
     
     if (filteredList.length === 0) {
@@ -321,7 +357,6 @@ function renderList() {
         list.appendChild(li);
     });
 
-    // 4. 상단 요약 업데이트 (전체 기준)
     document.getElementById('total-shared').innerText = totalShared.toLocaleString();
     document.getElementById('personal-me').innerText = personalMe.toLocaleString();
     document.getElementById('personal-hyung').innerText = personalHyung.toLocaleString();
