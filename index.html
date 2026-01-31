@@ -40,7 +40,7 @@
 
     <div class="summary-container">
         <div class="summary-box shared-box">
-            <div class="box-title">🤝 우리 같이 쓴 돈 (공동)</div>
+            <div class="box-title">🤝 우리 같이 쓴 돈 (전체)</div>
             <div class="box-value" style="margin-bottom: 5px;">
                 <span id="total-shared">0</span> THB
             </div>
@@ -60,6 +60,28 @@
     </div>
 
     <div class="list-header">📝 지출 내역 (최신순)</div>
+    
+    <div class="filter-container">
+        <div class="filter-row">
+            <button id="btn-month-all" class="filter-btn month active" onclick="setMonthFilter('all')">전체기간</button>
+            <button id="btn-month-2" class="filter-btn month" onclick="setMonthFilter('2')">2월</button>
+            <button id="btn-month-3" class="filter-btn month" onclick="setMonthFilter('3')">3월</button>
+            <button id="btn-month-custom" class="filter-btn month" onclick="setMonthFilter('custom')">직접설정</button>
+        </div>
+        <div id="custom-date-box" class="custom-date-box" style="display:none;">
+            <input type="date" id="start-date" onchange="setCustomDate()">
+            <span>~</span>
+            <input type="date" id="end-date" onchange="setCustomDate()">
+        </div>
+
+        <div class="filter-row" style="margin-top:8px;">
+            <button id="btn-cat-all" class="filter-btn cat active" onclick="setCategoryFilter('all')">모두보기</button>
+            <button id="btn-cat-me" class="filter-btn cat" onclick="setCategoryFilter('me')">🙋‍♂️ 내가냄</button>
+            <button id="btn-cat-hyung" class="filter-btn cat" onclick="setCategoryFilter('hyung')">🙋‍♂️ 형이냄</button>
+            <button id="btn-cat-settlement" class="filter-btn cat" onclick="setCategoryFilter('settlement')">💸 정산만</button>
+        </div>
+    </div>
+
     <ul id="expense-list">
         </ul>
     

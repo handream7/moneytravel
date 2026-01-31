@@ -19,7 +19,15 @@ const db = getFirestore(app);
 
 let expenseList = [];
 
-// 데이터 감시 및 정렬
+// ★ 필터 상태 관리 변수
+let currentFilter = {
+    month: 'all', // 'all', '2', '3', 'custom'
+    category: 'all', // 'all', 'me', 'hyung', 'settlement'
+    startDate: '',
+    endDate: ''
+};
+
+// 데이터 감시
 const q = query(collection(db, "expenses"));
 onSnapshot(q, (snapshot) => {
     expenseList = snapshot.docs.map(doc => ({
@@ -27,7 +35,7 @@ onSnapshot(q, (snapshot) => {
         ...doc.data()
     }));
     
-    // 여행 날짜(realDate) 기준 최신순 정렬
+    // 날짜 기준 최신순 정렬
     expenseList.sort((a, b) => {
         const dateA = a.realDate ? new Date(a.realDate) : new Date(a.timestamp);
         const dateB = b.realDate ? new Date(b.realDate) : new Date(b.timestamp);
@@ -126,7 +134,7 @@ window.editExpense = function(id) {
             </div>
             
             <div style="text-align:right;">
-                <button class="cancel-edit-btn" onclick="window.renderList()">취소</button>
+                <button class="cancel-edit-btn" onclick="renderList()">취소</button>
                 <button class="save-edit-btn" onclick="saveEdit('${id}')">저장</button>
             </div>
         </div>
@@ -179,21 +187,49 @@ window.deleteExpense = async function(id) {
     try { await deleteDoc(doc(db, "expenses", id)); } catch(e){}
 }
 
-// ★ 이 함수를 window에 붙여서 취소 버튼이 찾을 수 있게 수정함!
+// ★ 필터 변경 함수들
+window.setMonthFilter = function(month) {
+    currentFilter.month = month;
+    // 버튼 스타일 업데이트
+    document.querySelectorAll('.filter-btn.month').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`btn-month-${month}`).classList.add('active');
+
+    // 직접 설정 입력창 토글
+    const customBox = document.getElementById('custom-date-box');
+    if (month === 'custom') customBox.style.display = 'flex';
+    else customBox.style.display = 'none';
+
+    renderList();
+}
+
+window.setCategoryFilter = function(cat) {
+    currentFilter.category = cat;
+    // 버튼 스타일 업데이트
+    document.querySelectorAll('.filter-btn.cat').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`btn-cat-${cat}`).classList.add('active');
+
+    renderList();
+}
+
+// 직접 설정 날짜 변경 시 바로 반영
+window.setCustomDate = function() {
+    currentFilter.startDate = document.getElementById('start-date').value;
+    currentFilter.endDate = document.getElementById('end-date').value;
+    renderList();
+}
+
+
 function renderList() {
     const list = document.getElementById('expense-list');
     
+    // 1. 전체 데이터 기준으로 정산 계산 (필터 무관하게!)
     let totalShared = 0;      
     let sharedMe = 0;         
     let sharedHyung = 0;      
-    
     let personalMe = 0;       
     let personalHyung = 0;    
-    
     let settledToMe = 0;   
     let settledToHyung = 0; 
-
-    list.innerHTML = '';
 
     expenseList.forEach(item => {
         const type = item.type || 'shared'; 
@@ -211,6 +247,45 @@ function renderList() {
             if (payer === 'hyung') settledToMe += price;
             else settledToHyung += price;
         }
+    });
+
+    // 2. 화면에 표시할 리스트 필터링
+    let filteredList = expenseList.filter(item => {
+        const d = item.realDate ? new Date(item.realDate) : new Date(item.timestamp);
+        
+        // (1) 월 필터
+        if (currentFilter.month === '2' && d.getMonth() !== 1) return false;
+        if (currentFilter.month === '3' && d.getMonth() !== 2) return false;
+        if (currentFilter.month === 'custom') {
+            const start = currentFilter.startDate ? new Date(currentFilter.startDate) : null;
+            const end = currentFilter.endDate ? new Date(currentFilter.endDate) : null;
+            // 끝나는 날짜는 그날 23:59:59까지 포함하도록 보정
+            if (end) end.setHours(23, 59, 59);
+
+            if (start && d < start) return false;
+            if (end && d > end) return false;
+        }
+
+        // (2) 카테고리 필터 (내가냄, 형이냄, 정산)
+        if (currentFilter.category === 'me' && item.payer !== 'me') return false;
+        if (currentFilter.category === 'hyung' && item.payer !== 'hyung') return false;
+        if (currentFilter.category === 'settlement' && item.type !== 'settlement') return false;
+
+        return true;
+    });
+
+
+    // 3. 필터링된 리스트 그리기
+    list.innerHTML = '';
+    
+    if (filteredList.length === 0) {
+        list.innerHTML = `<li style="justify-content:center; color:#999; box-shadow:none; background:transparent;">내역이 없습니다.</li>`;
+    }
+
+    filteredList.forEach(item => {
+        const type = item.type || 'shared'; 
+        const price = Number(item.price) || 0;
+        const payer = item.payer;
 
         const li = document.createElement('li');
         li.id = `li-${item.id}`;
@@ -246,6 +321,7 @@ function renderList() {
         list.appendChild(li);
     });
 
+    // 4. 상단 요약 업데이트 (전체 기준)
     document.getElementById('total-shared').innerText = totalShared.toLocaleString();
     document.getElementById('personal-me').innerText = personalMe.toLocaleString();
     document.getElementById('personal-hyung').innerText = personalHyung.toLocaleString();
@@ -268,5 +344,4 @@ function renderList() {
     }
 }
 
-// ★ 매우 중요: renderList 함수를 window 밖으로 꺼내줍니다.
 window.renderList = renderList;
