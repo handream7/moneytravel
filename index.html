@@ -11,10 +11,10 @@
     <h2>🇹🇭 태국 여행 가계부</h2>
 
     <div class="input-group">
-        <input type="text" id="desc" placeholder="내용 (예: 팟타이, 그랩)">
+        <input type="text" id="desc" placeholder="내용 (예: 팟타이, 그랩, 1차 송금)">
         <input type="number" id="price" placeholder="금액 (THB)" inputmode="numeric">
         
-        <div class="radio-label">누가 돈을 냈나요?</div>
+        <div class="radio-label">누가 돈을 냈나요? (또는 보냈나요?)</div>
         <div class="radio-group">
             <input type="radio" name="payer" id="payer-me" value="me" checked>
             <label for="payer-me">🙋‍♂️ 내가 냄</label>
@@ -26,10 +26,13 @@
         <div class="radio-label">어떤 돈인가요?</div>
         <div class="radio-group type-group">
             <input type="radio" name="type" id="type-shared" value="shared" checked>
-            <label for="type-shared">🤝 공동 (N빵)</label>
+            <label for="type-shared">🤝 N빵</label>
             
             <input type="radio" name="type" id="type-personal" value="personal">
-            <label for="type-personal">👤 개인 지출</label>
+            <label for="type-personal">👤 개인</label>
+
+            <input type="radio" name="type" id="type-settlement" value="settlement">
+            <label for="type-settlement">💸 정산</label>
         </div>
 
         <button class="save-btn" onclick="addExpense()">기록하기</button>
