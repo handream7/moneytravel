@@ -19,7 +19,7 @@ const db = getFirestore(app);
 
 let expenseList = [];
 
-// 데이터 감시 및 날짜순 정렬
+// 데이터 감시 및 정렬
 const q = query(collection(db, "expenses"));
 onSnapshot(q, (snapshot) => {
     expenseList = snapshot.docs.map(doc => ({
@@ -64,7 +64,6 @@ window.addExpense = async function() {
             type: type 
         });
 
-        // 입력창 초기화
         document.getElementById('desc').value = '';
         document.getElementById('price').value = '';
         document.getElementById('desc').focus();
@@ -127,7 +126,7 @@ window.editExpense = function(id) {
             </div>
             
             <div style="text-align:right;">
-                <button class="cancel-edit-btn" onclick="renderList()">취소</button>
+                <button class="cancel-edit-btn" onclick="window.renderList()">취소</button>
                 <button class="save-edit-btn" onclick="saveEdit('${id}')">저장</button>
             </div>
         </div>
@@ -151,7 +150,6 @@ window.saveEdit = async function(id) {
         newRealDate = d.toISOString();
     }
 
-    // 수정 내역 체크
     const isDateSame = rawDate ? (newRealDate === originalItem.realDate) : true;
     const isDescSame = newDesc === originalItem.desc;
     const isPriceSame = newPrice === originalItem.price;
@@ -181,10 +179,10 @@ window.deleteExpense = async function(id) {
     try { await deleteDoc(doc(db, "expenses", id)); } catch(e){}
 }
 
+// ★ 이 함수를 window에 붙여서 취소 버튼이 찾을 수 있게 수정함!
 function renderList() {
     const list = document.getElementById('expense-list');
     
-    // 계산 변수들
     let totalShared = 0;      
     let sharedMe = 0;         
     let sharedHyung = 0;      
@@ -192,9 +190,8 @@ function renderList() {
     let personalMe = 0;       
     let personalHyung = 0;    
     
-    // ★ 정산(송금) 내역 변수 추가
-    let settledToMe = 0;   // 형이 나에게 준 돈
-    let settledToHyung = 0; // 내가 형에게 준 돈
+    let settledToMe = 0;   
+    let settledToHyung = 0; 
 
     list.innerHTML = '';
 
@@ -203,7 +200,6 @@ function renderList() {
         const price = Number(item.price) || 0;
         const payer = item.payer;
 
-        // 타입별 계산 로직
         if (type === 'shared') {
             totalShared += price;
             if (payer === 'me') sharedMe += price;
@@ -212,9 +208,8 @@ function renderList() {
             if (payer === 'me') personalMe += price;
             else personalHyung += price;
         } else if (type === 'settlement') {
-            // "중간 정산"인 경우: 누군가 돈을 갚음
-            if (payer === 'hyung') settledToMe += price; // 형이 냄 = 형이 나에게 갚음
-            else settledToHyung += price; // 내가 냄 = 내가 형에게 갚음
+            if (payer === 'hyung') settledToMe += price;
+            else settledToHyung += price;
         }
 
         const li = document.createElement('li');
@@ -223,14 +218,12 @@ function renderList() {
         const payerText = payer === 'me' ? '나' : '형';
         const payerClass = payer === 'me' ? 'text-me' : 'text-hyung';
         
-        // 배지 디자인 분기
         let badgeHtml = '';
         if (type === 'shared') badgeHtml = `<span class="badge shared">N빵</span>`;
         else if (type === 'personal') badgeHtml = `<span class="badge personal">개인</span>`;
-        else badgeHtml = `<span class="badge settlement">💸 정산</span>`; // 정산 배지
+        else badgeHtml = `<span class="badge settlement">💸 정산</span>`;
 
-        // 정산 내역은 스타일을 약간 다르게 (배경색 등)
-        if (type === 'settlement') li.style.background = "#fff8e1"; // 연한 노란색
+        if (type === 'settlement') li.style.background = "#fff8e1";
 
         li.innerHTML = `
             <div class="item-info">
@@ -257,16 +250,8 @@ function renderList() {
     document.getElementById('personal-me').innerText = personalMe.toLocaleString();
     document.getElementById('personal-hyung').innerText = personalHyung.toLocaleString();
 
-    // ★ 최종 정산 계산 (핵심) ★
-    // 1. 공동 경비에서 발생한 원래 차액 (내가 더 냈으면 +, 형이 더 냈으면 -)
     const baseDiff = sharedMe - sharedHyung;
-    
-    // 2. 그 차액의 절반이 "받아야 할 돈" (혹은 줘야 할 돈)
     let netOwedToMe = baseDiff / 2; 
-
-    // 3. 여기서 "중간 정산으로 이미 받은 돈"을 뺌
-    // 형이 나에게 줬으면(settledToMe), 받을 돈에서 깜.
-    // 내가 형에게 줬으면(settledToHyung), 받을 돈이 늘어나거나(마이너스 부채 감소) 함.
     netOwedToMe = netOwedToMe - settledToMe + settledToHyung;
 
     const settlementDiv = document.getElementById('settlement-result');
@@ -276,11 +261,12 @@ function renderList() {
     } else if (netOwedToMe === 0) {
         settlementDiv.innerHTML = `<span style="color:#4caf50;">정산 완료! (깔끔함 ✨)</span>`;
     } else if (netOwedToMe > 0) {
-        // 결과가 양수면 형이 나에게 줘야 함
         settlementDiv.innerHTML = `👉 <span style="color:#e91e63;">형이</span> 나에게 <b>${Math.floor(netOwedToMe).toLocaleString()} THB</b> 줘야 함`;
     } else {
-        // 결과가 음수면 내가 형에게 줘야 함
         const toGive = Math.abs(netOwedToMe);
         settlementDiv.innerHTML = `👉 <span style="color:#2196f3;">내가</span> 형에게 <b>${Math.floor(toGive).toLocaleString()} THB</b> 줘야 함`;
     }
 }
+
+// ★ 매우 중요: renderList 함수를 window 밖으로 꺼내줍니다.
+window.renderList = renderList;
