@@ -113,18 +113,14 @@ window.toggleLock = function(id) {
     }
 }
 
-// ★ 수정 모드 (기존 시간 유지 + 현재시간 버튼 추가)
+// 수정 모드
 window.editExpense = function(id) {
     const item = expenseList.find(i => i.id === id);
     if (!item) return;
 
     const currentType = item.type || 'shared'; 
 
-    // 1. 기존에 저장된 시간을 가져옴 (없으면 타임스탬프 사용)
     let savedDate = item.realDate ? new Date(item.realDate) : new Date(item.timestamp);
-    
-    // 2. input type="datetime-local"에 넣기 위해 로컬 시간 ISO 형식으로 변환
-    // (toISOString은 UTC 기준이라 한국시간과 9시간 차이가 나므로 보정해줌)
     const localTime = new Date(savedDate.getTime() - (savedDate.getTimezoneOffset() * 60000));
     const isoDateValue = localTime.toISOString().slice(0, 16);
 
@@ -164,16 +160,14 @@ window.editExpense = function(id) {
     `;
 }
 
-// ★ 현재 시간으로 설정해주는 헬퍼 함수
 window.setEditTimeNow = function(id) {
     const now = new Date();
-    // 로컬 시간 보정
     const localNow = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
     const isoNow = localNow.toISOString().slice(0, 16);
-    
     document.getElementById(`edit-date-${id}`).value = isoNow;
 }
 
+// ★ 수정된 저장 함수 (알림창 추가)
 window.saveEdit = async function(id) {
     const originalItem = expenseList.find(i => i.id === id);
     const rawDate = document.getElementById(`edit-date-${id}`).value;
@@ -212,6 +206,10 @@ window.saveEdit = async function(id) {
             payer: newPayer,
             type: newType
         });
+        
+        // ★ 저장 성공 알림창 추가
+        alert("수정되었습니다.");
+        
     } catch (e) { alert("수정 실패!"); }
 }
 
@@ -245,7 +243,6 @@ window.setCustomDate = function() {
     renderList();
 }
 
-// 엑셀 다운로드 (보이는 내역만)
 window.downloadCSV = function() {
     let filteredList = expenseList.filter(item => {
         const d = item.realDate ? new Date(item.realDate) : new Date(item.timestamp);
