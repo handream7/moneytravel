@@ -113,29 +113,30 @@ window.toggleLock = function(id) {
     }
 }
 
+// ★ 수정 모드 (기존 시간 유지 + 현재시간 버튼 추가)
 window.editExpense = function(id) {
     const item = expenseList.find(i => i.id === id);
     if (!item) return;
 
     const currentType = item.type || 'shared'; 
 
-    let isoDateValue = "";
-    if (item.realDate) {
-        const d = new Date(item.realDate);
-        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-        isoDateValue = d.toISOString().slice(0, 16);
-    } else {
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        isoDateValue = now.toISOString().slice(0, 16);
-    }
+    // 1. 기존에 저장된 시간을 가져옴 (없으면 타임스탬프 사용)
+    let savedDate = item.realDate ? new Date(item.realDate) : new Date(item.timestamp);
+    
+    // 2. input type="datetime-local"에 넣기 위해 로컬 시간 ISO 형식으로 변환
+    // (toISOString은 UTC 기준이라 한국시간과 9시간 차이가 나므로 보정해줌)
+    const localTime = new Date(savedDate.getTime() - (savedDate.getTimezoneOffset() * 60000));
+    const isoDateValue = localTime.toISOString().slice(0, 16);
 
     const li = document.getElementById(`li-${id}`);
     li.innerHTML = `
         <div class="edit-box">
             <div style="margin-bottom:8px;">
                 <label style="font-size:12px; color:#888;">날짜/시간</label>
-                <input type="datetime-local" id="edit-date-${id}" value="${isoDateValue}" style="width:100%;">
+                <div style="display:flex; gap:5px;">
+                    <input type="datetime-local" id="edit-date-${id}" value="${isoDateValue}" style="flex:1;">
+                    <button class="now-btn" onclick="setEditTimeNow('${id}')">🔄 현재시간</button>
+                </div>
             </div>
 
             <div style="display:flex; gap:5px; margin-bottom:5px;">
@@ -161,6 +162,16 @@ window.editExpense = function(id) {
             </div>
         </div>
     `;
+}
+
+// ★ 현재 시간으로 설정해주는 헬퍼 함수
+window.setEditTimeNow = function(id) {
+    const now = new Date();
+    // 로컬 시간 보정
+    const localNow = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+    const isoNow = localNow.toISOString().slice(0, 16);
+    
+    document.getElementById(`edit-date-${id}`).value = isoNow;
 }
 
 window.saveEdit = async function(id) {
@@ -234,14 +245,11 @@ window.setCustomDate = function() {
     renderList();
 }
 
-// ★ 수정된 엑셀 다운로드 함수 (필터 적용)
+// 엑셀 다운로드 (보이는 내역만)
 window.downloadCSV = function() {
-    
-    // 1. 현재 필터링된 리스트를 똑같이 계산
     let filteredList = expenseList.filter(item => {
         const d = item.realDate ? new Date(item.realDate) : new Date(item.timestamp);
         
-        // 월 필터
         if (currentFilter.month === '2' && d.getMonth() !== 1) return false;
         if (currentFilter.month === '3' && d.getMonth() !== 2) return false;
         if (currentFilter.month === 'custom') {
@@ -252,7 +260,6 @@ window.downloadCSV = function() {
             if (end && d > end) return false;
         }
 
-        // 카테고리 필터
         if (currentFilter.category === 'me' && item.payer !== 'me') return false;
         if (currentFilter.category === 'hyung' && item.payer !== 'hyung') return false;
         if (currentFilter.category === 'settlement' && item.type !== 'settlement') return false;
@@ -265,7 +272,6 @@ window.downloadCSV = function() {
         return;
     }
 
-    // 2. CSV 생성 (필터된 리스트로)
     let csvContent = "\uFEFF날짜,시간,내용,금액,누가냈나,종류\n";
 
     filteredList.forEach(item => {
@@ -402,13 +408,13 @@ function renderList() {
 
     if (totalShared === 0 && settledToMe === 0 && settledToHyung === 0) {
         settlementDiv.innerHTML = `<span style="color:#aaa;">지출 내역 없음</span>`;
-    } else if (netOwedToMe === 0) {
+    } else if (Math.round(netOwedToMe) === 0) {
         settlementDiv.innerHTML = `<span style="color:#4caf50;">정산 완료! (깔끔함 ✨)</span>`;
     } else if (netOwedToMe > 0) {
-        settlementDiv.innerHTML = `👉 <span style="color:#e91e63;">형이</span> 나에게 <b>${Math.floor(netOwedToMe).toLocaleString()} THB</b> 줘야 함`;
+        settlementDiv.innerHTML = `👉 <span style="color:#e91e63;">형이</span> 나에게 <b>${Math.round(netOwedToMe).toLocaleString()} THB</b> 줘야 함`;
     } else {
         const toGive = Math.abs(netOwedToMe);
-        settlementDiv.innerHTML = `👉 <span style="color:#2196f3;">내가</span> 형에게 <b>${Math.floor(toGive).toLocaleString()} THB</b> 줘야 함`;
+        settlementDiv.innerHTML = `👉 <span style="color:#2196f3;">내가</span> 형에게 <b>${Math.round(toGive).toLocaleString()} THB</b> 줘야 함`;
     }
 }
 
