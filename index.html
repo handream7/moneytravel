@@ -8,32 +8,52 @@
 </head>
 <body>
 
-    <h2>🇹🇭 태국 여행 정산요정</h2>
+    <h2>🇹🇭 태국 여행 가계부</h2>
 
     <div class="input-group">
-        <input type="text" id="desc" placeholder="내용 (예: 야시장, 툭툭)">
-        <input type="number" id="price" placeholder="금액 (숫자만)" inputmode="numeric">
+        <input type="text" id="desc" placeholder="내용 (예: 팟타이, 그랩)">
+        <input type="number" id="price" placeholder="금액 (THB)" inputmode="numeric">
         
+        <div class="radio-label">누가 돈을 냈나요?</div>
         <div class="radio-group">
             <input type="radio" name="payer" id="payer-me" value="me" checked>
-            <label for="payer-me">내가 냄</label>
+            <label for="payer-me">🙋‍♂️ 내가 냄</label>
             
             <input type="radio" name="payer" id="payer-hyung" value="hyung">
-            <label for="payer-hyung">형이 냄</label>
+            <label for="payer-hyung">🙋‍♂️ 형이 냄</label>
+        </div>
+
+        <div class="radio-label">어떤 돈인가요?</div>
+        <div class="radio-group type-group">
+            <input type="radio" name="type" id="type-shared" value="shared" checked>
+            <label for="type-shared">🤝 공동 (N빵)</label>
+            
+            <input type="radio" name="type" id="type-personal" value="personal">
+            <label for="type-personal">👤 개인 지출</label>
         </div>
 
         <button class="save-btn" onclick="addExpense()">기록하기</button>
     </div>
 
-    <div class="summary-box">
-        <div style="display:flex; justify-content: space-between;">
-            <span>나 지출: <b id="total-me">0</b>원</span>
-            <span>형 지출: <b id="total-hyung">0</b>원</span>
+    <div class="summary-container">
+        <div class="summary-box shared-box">
+            <div class="box-title">🤝 우리 같이 쓴 돈 (공동)</div>
+            <div class="box-value"><span id="total-shared">0</span> THB</div>
         </div>
-        <div class="result-text" id="final-result">정산 내용 없음</div>
+
+        <div class="personal-row">
+            <div class="summary-box personal-box">
+                <div class="box-title">👤 나 개인</div>
+                <div class="box-value"><span id="personal-me">0</span> THB</div>
+            </div>
+            <div class="summary-box personal-box">
+                <div class="box-title">👤 형 개인</div>
+                <div class="box-value"><span id="personal-hyung">0</span> THB</div>
+            </div>
+        </div>
     </div>
 
-    <div style="margin-bottom: 10px; font-weight:bold; color:#555;">📝 지출 내역 (최신순)</div>
+    <div class="list-header">📝 지출 내역 (최신순)</div>
     <ul id="expense-list">
         </ul>
     

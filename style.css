@@ -1,126 +1,183 @@
+/* 파스텔 블루 테마 설정 */
+:root {
+    --bg-color: #f0f8ff;       /* 아주 연한 하늘색 배경 */
+    --main-blue: #90caf9;      /* 파스텔 블루 (버튼 등) */
+    --deep-blue: #42a5f5;      /* 진한 파스텔 블루 (강조) */
+    --text-dark: #37474f;      /* 진한 회색 텍스트 */
+    --white: #ffffff;
+}
+
 body {
     font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-    background-color: #f0f2f5;
+    background-color: var(--bg-color);
     margin: 0;
     padding: 15px;
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+    color: var(--text-dark);
 }
-h2 { text-align: center; color: #333; margin-top: 10px; }
+
+h2 { 
+    text-align: center; 
+    color: #546e7a; 
+    margin-bottom: 20px;
+}
 
 /* 입력 폼 */
 .input-group {
-    background: white;
+    background: var(--white);
     padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-    border: 2px solid #00c73c; /* 입력창 강조 */
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(144, 202, 249, 0.2);
+    margin-bottom: 25px;
+    border: 1px solid #e3f2fd;
 }
-input {
+
+input, select {
     width: 100%;
     padding: 12px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #cfd8dc;
+    border-radius: 12px;
     box-sizing: border-box;
     font-size: 16px;
+    background-color: #fbfbfb;
+}
+input:focus {
+    outline: none;
+    border-color: var(--deep-blue);
+    background-color: #fff;
+}
+
+/* 라디오 버튼 그룹 */
+.radio-label {
+    font-size: 14px;
+    color: #78909c;
+    margin-bottom: 5px;
+    font-weight: bold;
 }
 .radio-group {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 15px;
 }
 .radio-group label {
     flex: 1;
     text-align: center;
-    background: #e9ecef;
-    padding: 12px;
-    border-radius: 8px;
+    background: #eceff1;
+    color: #607d8b;
+    padding: 10px;
+    border-radius: 12px;
     cursor: pointer;
     font-weight: bold;
-    transition: 0.2s;
+    font-size: 14px;
+    transition: all 0.2s;
 }
 input[type="radio"] { display: none; }
 input[type="radio"]:checked + label {
-    background: #007bff;
+    background: var(--main-blue);
     color: white;
+    box-shadow: 0 4px 10px rgba(144, 202, 249, 0.4);
+}
+/* 개인/공동 선택은 약간 다른 색감 */
+.type-group input[type="radio"]:checked + label {
+    background: var(--deep-blue);
 }
 
-/* 버튼들 */
-button {
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
+/* 메인 버튼 */
 .save-btn {
     width: 100%;
     padding: 15px;
-    background-color: #00c73c;
+    background-color: var(--deep-blue);
     color: white;
     font-size: 18px;
     font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(66, 165, 245, 0.3);
+    transition: 0.2s;
 }
+.save-btn:active { transform: scale(0.98); }
 
-/* 정산 결과 박스 */
+/* 정산 요약 박스 */
+.summary-container {
+    margin-bottom: 30px;
+}
 .summary-box {
-    background: #333;
-    color: white;
-    padding: 15px 20px;
+    background: white;
     border-radius: 15px;
-    margin-bottom: 25px;
-}
-.result-text {
-    font-size: 18px;
-    font-weight: bold;
-    color: #ffeb3b;
+    padding: 15px;
     text-align: center;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid #555;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
+.shared-box {
+    background: #e3f2fd; /* 아주 연한 파랑 */
+    margin-bottom: 10px;
+    border: 1px solid #bbdefb;
+}
+.personal-row {
+    display: flex;
+    gap: 10px;
+}
+.personal-box {
+    flex: 1;
+    background: white;
+    border: 1px solid #eee;
+}
+.box-title { font-size: 13px; color: #78909c; margin-bottom: 5px; }
+.box-value { font-size: 20px; font-weight: bold; color: #37474f; }
 
 /* 리스트 스타일 */
+.list-header {
+    font-weight: bold;
+    color: #546e7a;
+    margin-bottom: 10px;
+    padding-left: 5px;
+}
 ul { list-style: none; padding: 0; margin: 0; }
 li {
     background: white;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #f0f0f0;
     padding: 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-radius: 10px;
-    margin-bottom: 8px; /* 리스트 간격 띄우기 */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border-radius: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
 }
 
-.item-info { flex: 1; }
-.item-date { font-size: 12px; color: #999; }
-.item-payer { font-weight: bold; color: #007bff; margin-right: 5px; font-size: 14px; }
-.item-payer.hyung { color: #d63384; }
+/* 리스트 내부 텍스트 */
+.payer-mark {
+    font-weight: bold;
+    margin-right: 5px;
+    font-size: 14px;
+}
+.text-blue { color: var(--deep-blue); } /* 나 */
+.text-purple { color: #ab47bc; } /* 형 (보라 포인트) */
 
-.action-box {
-    display: flex;
-    align-items: center;
+.badge {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 5px;
+    font-weight: normal;
+    vertical-align: middle;
 }
+.badge.shared { background: #e3f2fd; color: #1e88e5; }
+.badge.personal { background: #f5f5f5; color: #757575; }
 
-/* 잠금 & 삭제 버튼 스타일 */
-.lock-btn {
-    background: none;
-    font-size: 20px;
-    padding: 5px;
-}
-.delete-btn {
-    background-color: #ff4444;
-    color: white;
-    padding: 8px 12px;
-    font-size: 13px;
-    margin-left: 5px;
-    animation: fadeIn 0.3s;
-}
+.item-date { font-size: 12px; color: #b0bec5; margin-top: 3px; }
+.price-text { color: #455a64; font-size: 16px; margin-right: 10px;}
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateX(10px); }
-    to { opacity: 1; transform: translateX(0); }
-}
+/* 버튼들 */
+.lock-btn { background: none; border: none; font-size: 18px; cursor: pointer; padding: 5px; opacity: 0.5; }
+.edit-btn { background-color: #ffca28; color: white; border: none; border-radius: 6px; padding: 6px 10px; font-size: 12px; cursor: pointer; }
+.delete-btn { background-color: #ef5350; color: white; border: none; border-radius: 6px; padding: 6px 10px; font-size: 12px; cursor: pointer; }
+
+/* 수정창 스타일 */
+.edit-box { width: 100%; background: #fafafa; padding: 10px; border-radius: 10px; border: 1px solid #eee; }
+.save-edit-btn { background-color: var(--deep-blue); color: white; border: none; border-radius: 6px; padding: 8px 15px; cursor: pointer; }
+.cancel-edit-btn { background-color: #b0bec5; color: white; border: none; border-radius: 6px; padding: 8px 15px; cursor: pointer; }
