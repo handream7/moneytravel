@@ -1,6 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+    getFirestore, collection, addDoc, onSnapshot, query, orderBy, 
+    deleteDoc, updateDoc, doc, initializeFirestore, persistentLocalCache, 
+    persistentMultipleTabManager 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // 설정
 const firebaseConfig = {
@@ -15,11 +19,17 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
-const db = getFirestore(app);
+
+// ★ 모바일 연결 안정성 강화 설정 (설정 변경됨)
+// 1. 일반 getFirestore() 대신 initializeFirestore() 사용
+// 2. 실험적 롱폴링 강제 적용 (웹소켓보다 모바일 데이터에서 더 안정적임)
+const db = initializeFirestore(app, {
+    experimentalForceLongPolling: true, // 모바일 끊김 방지 핵심 옵션
+});
 
 let expenseList = [];
+let unsubscribe = null; // 데이터 감시자 저장 변수
 
-// 필터 기본값
 let currentFilter = {
     month: 'all', 
     category: 'all', 
@@ -27,25 +37,52 @@ let currentFilter = {
     endDate: ''
 };
 
-// 데이터 감시
-const q = query(collection(db, "expenses"));
-onSnapshot(q, (snapshot) => {
-    expenseList = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-    }));
-    
-    // 날짜 기준 최신순 정렬
-    expenseList.sort((a, b) => {
-        const dateA = a.realDate ? new Date(a.realDate) : new Date(a.timestamp);
-        const dateB = b.realDate ? new Date(b.realDate) : new Date(b.timestamp);
-        return dateB - dateA;
-    });
+// ★ 데이터 감시 함수 (따로 분리함)
+function startRealtimeListener() {
+    // 기존에 감시하고 있던게 있다면 끄고 다시 시작 (중복 방지)
+    if (unsubscribe) {
+        unsubscribe();
+    }
 
-    renderList();
+    const q = query(collection(db, "expenses"));
+    
+    // onSnapshot을 변수에 담아서 관리
+    unsubscribe = onSnapshot(q, (snapshot) => {
+        expenseList = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        
+        // 정렬
+        expenseList.sort((a, b) => {
+            const dateA = a.realDate ? new Date(a.realDate) : new Date(a.timestamp);
+            const dateB = b.realDate ? new Date(b.realDate) : new Date(b.timestamp);
+            return dateB - dateA;
+        });
+
+        renderList();
+    }, (error) => {
+        console.error("연결 끊김, 재시도...", error);
+        // 에러 나면 2초 뒤 재연결 시도
+        setTimeout(startRealtimeListener, 2000);
+    });
+}
+
+// 앱 시작 시 리스너 가동
+startRealtimeListener();
+
+// ★ 모바일 화면 켜짐/꺼짐 감지 (핵심 기능)
+// 다른 앱 갔다 오거나 화면 켰을 때 강제로 데이터 다시 연결
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+        console.log("화면 켜짐! 데이터 재연결 시도");
+        startRealtimeListener();
+    }
 });
 
-// 기록하기
+
+// --- 아래부터는 기존 기능과 동일 ---
+
 window.addExpense = async function() {
     const desc = document.getElementById('desc').value;
     const price = parseInt(document.getElementById('price').value);
@@ -90,7 +127,6 @@ window.toggleLock = function(id) {
     }
 }
 
-// 수정 모드
 window.editExpense = function(id) {
     const item = expenseList.find(i => i.id === id);
     if (!item) return;
@@ -212,47 +248,30 @@ window.setCustomDate = function() {
     renderList();
 }
 
-// ★ 엑셀 다운로드 함수 (추가됨)
 window.downloadCSV = function() {
     if (expenseList.length === 0) {
         alert("저장할 내역이 없습니다.");
         return;
     }
 
-    // CSV 내용 만들기
-    // 1. 헤더 (BOM 추가하여 한글 깨짐 방지)
     let csvContent = "\uFEFF날짜,시간,내용,금액,누가냈나,종류\n";
 
-    // 2. 데이터 한 줄씩 추가
-    // (현재 필터링된 화면 기준이 아니라, 전체 데이터를 다 다운로드합니다)
     expenseList.forEach(item => {
-        const typeMap = {
-            'shared': 'N빵(공동)',
-            'personal': '개인',
-            'settlement': '중간정산'
-        };
+        const typeMap = { 'shared': 'N빵(공동)', 'personal': '개인', 'settlement': '중간정산' };
         const payerMap = { 'me': '나', 'hyung': '형' };
         
-        // 날짜와 시간 분리 (Excel 보기 편하게)
         let datePart = item.date.split(' ')[0] || item.date;
         let timePart = item.date.split(' ')[1] || '';
-
-        // 내용에 쉼표(,)가 있으면 엑셀 칸이 밀리므로 따옴표로 감싸줌
         const safeDesc = `"${item.desc.replace(/"/g, '""')}"`;
         
         const row = [
-            datePart,
-            timePart,
-            safeDesc,
-            item.price,
-            payerMap[item.payer],
-            typeMap[item.type || 'shared']
+            datePart, timePart, safeDesc, item.price,
+            payerMap[item.payer], typeMap[item.type || 'shared']
         ].join(",");
         
         csvContent += row + "\n";
     });
 
-    // 다운로드 링크 생성 및 클릭
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
