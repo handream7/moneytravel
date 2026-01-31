@@ -143,18 +143,19 @@ li {
 .save-edit-btn { background-color: var(--main-blue); color: white; border: none; border-radius: 6px; padding: 8px 15px; cursor: pointer; }
 .cancel-edit-btn { background-color: #b0bec5; color: white; border: none; border-radius: 6px; padding: 8px 15px; cursor: pointer; }
 
-/* ★ 수정된 현재시간 버튼 (작고 귀엽게) */
+/* ★ 수정된 현재시간 버튼 (높이 줄임) */
 .now-btn {
-    background-color: #eceff1; /* 연한 회색 배경 */
-    color: #607d8b; /* 짙은 회색 글씨 */
-    border: 1px solid #cfd8dc; /* 은은한 테두리 */
+    background-color: #eceff1;
+    color: #607d8b;
+    border: 1px solid #cfd8dc;
     border-radius: 8px; 
-    padding: 0 10px; 
+    padding: 8px 10px; /* 적당한 패딩 */
     font-size: 11px; 
     font-weight: bold;
     cursor: pointer;
     white-space: nowrap;
     transition: 0.2s;
+    align-self: center; /* ★ 핵심: 옆 입력창 높이에 따라 늘어나지 않게 중앙 정렬 */
 }
 .now-btn:active {
     background-color: #cfd8dc;
