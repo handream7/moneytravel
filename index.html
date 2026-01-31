@@ -3,22 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>태국 여행 가계부 (N빵)</title>
+    <title>태국 여행 가계부</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <h2>🇹🇭 태국 여행 정산요정</h2>
 
-    <div class="summary-box">
-        <div>나 지출: <span id="total-me">0</span>원</div>
-        <div>형 지출: <span id="total-hyung">0</span>원</div>
-        <div class="result-text" id="final-result">정산 내용 없음</div>
-    </div>
-
     <div class="input-group">
-        <input type="text" id="desc" placeholder="어디에 썼나요? (예: 야시장, 택시비)">
-        <input type="number" id="price" placeholder="얼마인가요? (숫자만)" inputmode="numeric">
+        <input type="text" id="desc" placeholder="내용 (예: 야시장, 툭툭)">
+        <input type="number" id="price" placeholder="금액 (숫자만)" inputmode="numeric">
         
         <div class="radio-group">
             <input type="radio" name="payer" id="payer-me" value="me" checked>
@@ -28,16 +22,25 @@
             <label for="payer-hyung">형이 냄</label>
         </div>
 
-        <button onclick="addExpense()">기록하기</button>
+        <button class="save-btn" onclick="addExpense()">기록하기</button>
     </div>
 
+    <div class="summary-box">
+        <div style="display:flex; justify-content: space-between;">
+            <span>나 지출: <b id="total-me">0</b>원</span>
+            <span>형 지출: <b id="total-hyung">0</b>원</span>
+        </div>
+        <div class="result-text" id="final-result">정산 내용 없음</div>
+    </div>
+
+    <div style="margin-bottom: 10px; font-weight:bold; color:#555;">📝 지출 내역</div>
     <ul id="expense-list">
         </ul>
     
-    <div style="text-align: center; margin-top: 20px;">
-        <button onclick="resetData()" style="background-color: #666; width: auto; font-size: 14px; padding: 10px 20px;">전체 초기화 (새 여행)</button>
+    <div style="text-align: center; margin-top: 30px; margin-bottom: 50px;">
+        <button onclick="resetData()" style="background-color: #999; width: auto; font-size: 12px; padding: 8px 15px;">전체 초기화</button>
     </div>
 
-    <script src="script.js" defer></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>

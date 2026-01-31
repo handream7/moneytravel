@@ -1,9 +1,9 @@
-// 1. Firebase 라이브러리 가져오기 (보내주신 12.8.0 버전과 맞췄습니다)
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+// 1. Firebase 라이브러리 (안정적인 10.7.1 버전으로 변경)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 2. 찾아내신 Firebase 설정 코드
+// 2. 사용자 설정 (그대로 유지)
 const firebaseConfig = {
     apiKey: "AIzaSyDuwvZELALWOyPuJWrQfBpklq-_o-RyGog",
     authDomain: "moneytravel-6c093.firebaseapp.com",
@@ -14,33 +14,30 @@ const firebaseConfig = {
     measurementId: "G-1JPBFMERM5"
 };
 
-// 3. Firebase 및 Firestore 초기화
+// 3. 초기화
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app); // 애널리틱스도 연결해둠
-const db = getFirestore(app);        // 데이터베이스 연결
+const analytics = getAnalytics(app);
+const db = getFirestore(app);
 
-// 전역 변수로 리스트 관리
 let expenseList = [];
 
-// 앱이 켜지면 Firebase 데이터 실시간으로 감시 (여기가 핵심!)
+// 데이터 실시간 감시
 const q = query(collection(db, "expenses"), orderBy("timestamp", "desc"));
 onSnapshot(q, (snapshot) => {
     expenseList = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
     }));
-    renderList(); // 데이터가 바뀔 때마다 화면 새로고침
+    renderList();
 });
 
-// HTML 버튼에서 사용할 함수들을 window 객체에 등록
+// 기록하기 함수
 window.addExpense = async function() {
     const desc = document.getElementById('desc').value;
     const priceStr = document.getElementById('price').value;
     const price = parseInt(priceStr);
-    
-    // 라디오 버튼 선택값 가져오기
     const payerEl = document.querySelector('input[name="payer"]:checked');
-    const payer = payerEl ? payerEl.value : 'me'; // 기본값 'me'
+    const payer = payerEl ? payerEl.value : 'me'; 
 
     if (!desc || isNaN(price)) {
         alert("내용과 금액을 정확히 입력해주세요!");
@@ -51,50 +48,57 @@ window.addExpense = async function() {
     const dateStr = `${now.getMonth() + 1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
 
     try {
-        // Firebase에 데이터 저장
         await addDoc(collection(db, "expenses"), {
-            timestamp: Date.now(), // 정렬용
+            timestamp: Date.now(),
             date: dateStr,
             desc: desc,
             price: price,
             payer: payer
         });
 
-        // 입력창 비우기
         document.getElementById('desc').value = '';
         document.getElementById('price').value = '';
         document.getElementById('desc').focus();
     } catch (e) {
-        console.error("Error adding document: ", e);
-        alert("저장 실패! 인터넷 연결을 확인하세요.");
+        console.error("Error: ", e);
+        alert("저장 실패! (새로고침 후 다시 시도해보세요)");
     }
 }
 
+// 잠금 토글 함수 (자물쇠 누르면 실행)
+window.toggleLock = function(id) {
+    const lockBtn = document.getElementById(`lock-btn-${id}`);
+    const delBtn = document.getElementById(`del-btn-${id}`);
+
+    if (delBtn.style.display === "none") {
+        // 잠금 해제
+        delBtn.style.display = "inline-block";
+        lockBtn.innerText = "🔓";
+    } else {
+        // 다시 잠금
+        delBtn.style.display = "none";
+        lockBtn.innerText = "🔒";
+    }
+}
+
+// 삭제 함수
 window.deleteExpense = async function(id) {
     if(!confirm('정말 삭제할까요?')) return;
     
     try {
         await deleteDoc(doc(db, "expenses", id));
     } catch (e) {
-        console.error("Delete Error: ", e);
         alert("삭제 실패!");
     }
 }
 
 window.resetData = async function() {
-    if(!confirm('모든 기록을 삭제하시겠습니까? (주의: 형 폰에서도 다 지워집니다)')) return;
-    
-    // 리스트에 있는 모든 항목 삭제
+    if(!confirm('정말 모든 기록을 초기화하시겠습니까?')) return;
     expenseList.forEach(async (item) => {
-        try {
-            await deleteDoc(doc(db, "expenses", item.id));
-        } catch(e) {
-            console.log("삭제 중 오류 발생", e);
-        }
+        await deleteDoc(doc(db, "expenses", item.id));
     });
 }
 
-// 화면 그리기 함수
 function renderList() {
     const list = document.getElementById('expense-list');
     let totalMe = 0;
@@ -116,9 +120,12 @@ function renderList() {
                 <b>${item.desc}</b> <br>
                 <span class="item-date">${item.date}</span>
             </div>
-            <div style="display:flex; align-items:center;">
-                <b>${item.price.toLocaleString()}원</b>
-                <button class="delete-btn" onclick="deleteExpense('${item.id}')">삭제</button>
+            <div class="action-box">
+                <b style="margin-right:10px;">${item.price.toLocaleString()}원</b>
+                
+                <button id="lock-btn-${item.id}" class="lock-btn" onclick="toggleLock('${item.id}')">🔒</button>
+                
+                <button id="del-btn-${item.id}" class="delete-btn" style="display:none;" onclick="deleteExpense('${item.id}')">삭제</button>
             </div>
         `;
         list.appendChild(li);
@@ -127,7 +134,6 @@ function renderList() {
     updateSummary(totalMe, totalHyung);
 }
 
-// 정산 결과 계산 함수
 function updateSummary(me, hyung) {
     document.getElementById('total-me').innerText = me.toLocaleString();
     document.getElementById('total-hyung').innerText = hyung.toLocaleString();

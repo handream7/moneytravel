@@ -2,22 +2,23 @@ body {
     font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
     background-color: #f0f2f5;
     margin: 0;
-    padding: 20px;
+    padding: 15px;
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
 }
-h2 { text-align: center; color: #333; }
+h2 { text-align: center; color: #333; margin-top: 10px; }
 
-/* 입력 폼 스타일 */
+/* 입력 폼 */
 .input-group {
     background: white;
     padding: 20px;
     border-radius: 15px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     margin-bottom: 20px;
+    border: 2px solid #00c73c; /* 입력창 강조 */
 }
-input, select {
+input {
     width: 100%;
     padding: 12px;
     margin-bottom: 10px;
@@ -39,43 +40,39 @@ input, select {
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
+    transition: 0.2s;
 }
-/* 라디오 버튼 선택 시 스타일 */
 input[type="radio"] { display: none; }
 input[type="radio"]:checked + label {
     background: #007bff;
     color: white;
 }
 
+/* 버튼들 */
 button {
-    width: 100%;
-    padding: 15px;
-    background-color: #00c73c; /* 네이버 그린 느낌 */
-    color: white;
     border: none;
     border-radius: 8px;
-    font-size: 18px;
-    font-weight: bold;
     cursor: pointer;
 }
-button.delete-btn {
-    background-color: #ff4444;
-    padding: 5px 10px;
-    font-size: 12px;
-    width: auto;
-    margin-left: 10px;
+.save-btn {
+    width: 100%;
+    padding: 15px;
+    background-color: #00c73c;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
 }
 
 /* 정산 결과 박스 */
 .summary-box {
     background: #333;
     color: white;
-    padding: 20px;
+    padding: 15px 20px;
     border-radius: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 .result-text {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
     color: #ffeb3b;
     text-align: center;
@@ -85,7 +82,7 @@ button.delete-btn {
 }
 
 /* 리스트 스타일 */
-ul { list-style: none; padding: 0; }
+ul { list-style: none; padding: 0; margin: 0; }
 li {
     background: white;
     border-bottom: 1px solid #eee;
@@ -93,11 +90,37 @@ li {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-radius: 10px;
+    margin-bottom: 8px; /* 리스트 간격 띄우기 */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
-li:first-child { border-top-left-radius: 15px; border-top-right-radius: 15px; }
-li:last-child { border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; }
 
 .item-info { flex: 1; }
-.item-date { font-size: 12px; color: #888; }
-.item-payer { font-weight: bold; color: #007bff; margin-right: 5px; }
-.item-payer.hyung { color: #d63384; } /* 형은 다른 색 */
+.item-date { font-size: 12px; color: #999; }
+.item-payer { font-weight: bold; color: #007bff; margin-right: 5px; font-size: 14px; }
+.item-payer.hyung { color: #d63384; }
+
+.action-box {
+    display: flex;
+    align-items: center;
+}
+
+/* 잠금 & 삭제 버튼 스타일 */
+.lock-btn {
+    background: none;
+    font-size: 20px;
+    padding: 5px;
+}
+.delete-btn {
+    background-color: #ff4444;
+    color: white;
+    padding: 8px 12px;
+    font-size: 13px;
+    margin-left: 5px;
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
