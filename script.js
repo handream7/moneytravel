@@ -2,8 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 import { 
     getFirestore, collection, addDoc, onSnapshot, query, orderBy, 
-    deleteDoc, updateDoc, doc, initializeFirestore, persistentLocalCache, 
-    persistentMultipleTabManager 
+    deleteDoc, updateDoc, doc, initializeFirestore 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // 설정
@@ -20,15 +19,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
-// ★ 모바일 연결 안정성 강화 설정 (설정 변경됨)
-// 1. 일반 getFirestore() 대신 initializeFirestore() 사용
-// 2. 실험적 롱폴링 강제 적용 (웹소켓보다 모바일 데이터에서 더 안정적임)
+// 모바일 연결 끊김 방지
 const db = initializeFirestore(app, {
-    experimentalForceLongPolling: true, // 모바일 끊김 방지 핵심 옵션
+    experimentalForceLongPolling: true, 
 });
 
 let expenseList = [];
-let unsubscribe = null; // 데이터 감시자 저장 변수
+let unsubscribe = null; 
 
 let currentFilter = {
     month: 'all', 
@@ -37,23 +34,19 @@ let currentFilter = {
     endDate: ''
 };
 
-// ★ 데이터 감시 함수 (따로 분리함)
+// 데이터 감시 및 연결 유지
 function startRealtimeListener() {
-    // 기존에 감시하고 있던게 있다면 끄고 다시 시작 (중복 방지)
-    if (unsubscribe) {
-        unsubscribe();
-    }
+    if (unsubscribe) unsubscribe();
 
     const q = query(collection(db, "expenses"));
     
-    // onSnapshot을 변수에 담아서 관리
     unsubscribe = onSnapshot(q, (snapshot) => {
         expenseList = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
         
-        // 정렬
+        // 날짜 기준 최신순 정렬
         expenseList.sort((a, b) => {
             const dateA = a.realDate ? new Date(a.realDate) : new Date(a.timestamp);
             const dateB = b.realDate ? new Date(b.realDate) : new Date(b.timestamp);
@@ -62,26 +55,19 @@ function startRealtimeListener() {
 
         renderList();
     }, (error) => {
-        console.error("연결 끊김, 재시도...", error);
-        // 에러 나면 2초 뒤 재연결 시도
         setTimeout(startRealtimeListener, 2000);
     });
 }
 
-// 앱 시작 시 리스너 가동
 startRealtimeListener();
 
-// ★ 모바일 화면 켜짐/꺼짐 감지 (핵심 기능)
-// 다른 앱 갔다 오거나 화면 켰을 때 강제로 데이터 다시 연결
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
-        console.log("화면 켜짐! 데이터 재연결 시도");
         startRealtimeListener();
     }
 });
 
-
-// --- 아래부터는 기존 기능과 동일 ---
+// --- 기능 함수들 ---
 
 window.addExpense = async function() {
     const desc = document.getElementById('desc').value;
@@ -248,15 +234,41 @@ window.setCustomDate = function() {
     renderList();
 }
 
+// ★ 수정된 엑셀 다운로드 함수 (필터 적용)
 window.downloadCSV = function() {
-    if (expenseList.length === 0) {
-        alert("저장할 내역이 없습니다.");
+    
+    // 1. 현재 필터링된 리스트를 똑같이 계산
+    let filteredList = expenseList.filter(item => {
+        const d = item.realDate ? new Date(item.realDate) : new Date(item.timestamp);
+        
+        // 월 필터
+        if (currentFilter.month === '2' && d.getMonth() !== 1) return false;
+        if (currentFilter.month === '3' && d.getMonth() !== 2) return false;
+        if (currentFilter.month === 'custom') {
+            const start = currentFilter.startDate ? new Date(currentFilter.startDate) : null;
+            const end = currentFilter.endDate ? new Date(currentFilter.endDate) : null;
+            if (end) end.setHours(23, 59, 59);
+            if (start && d < start) return false;
+            if (end && d > end) return false;
+        }
+
+        // 카테고리 필터
+        if (currentFilter.category === 'me' && item.payer !== 'me') return false;
+        if (currentFilter.category === 'hyung' && item.payer !== 'hyung') return false;
+        if (currentFilter.category === 'settlement' && item.type !== 'settlement') return false;
+
+        return true;
+    });
+
+    if (filteredList.length === 0) {
+        alert("저장할 내역이 없습니다 (현재 화면에 보이는 내역이 없음).");
         return;
     }
 
+    // 2. CSV 생성 (필터된 리스트로)
     let csvContent = "\uFEFF날짜,시간,내용,금액,누가냈나,종류\n";
 
-    expenseList.forEach(item => {
+    filteredList.forEach(item => {
         const typeMap = { 'shared': 'N빵(공동)', 'personal': '개인', 'settlement': '중간정산' };
         const payerMap = { 'me': '나', 'hyung': '형' };
         
@@ -276,7 +288,7 @@ window.downloadCSV = function() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", "태국여행_가계부.csv");
+    link.setAttribute("download", "태국여행_가계부_필터적용.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -285,6 +297,7 @@ window.downloadCSV = function() {
 function renderList() {
     const list = document.getElementById('expense-list');
     
+    // 정산 계산은 항상 "전체 데이터" 기준
     let totalShared = 0;      
     let sharedMe = 0;         
     let sharedHyung = 0;      
@@ -311,6 +324,7 @@ function renderList() {
         }
     });
 
+    // 화면 표시는 "필터링된 데이터" 기준
     let filteredList = expenseList.filter(item => {
         const d = item.realDate ? new Date(item.realDate) : new Date(item.timestamp);
         
