@@ -19,7 +19,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
-// 모바일 연결 끊김 방지
 const db = initializeFirestore(app, {
     experimentalForceLongPolling: true, 
 });
@@ -34,7 +33,26 @@ let currentFilter = {
     endDate: ''
 };
 
-// 데이터 감시 및 연결 유지
+// --- 추가된 로컬 저장 로직 (Payer 유지) ---
+
+// 페이지 로드 시 실행: 마지막으로 선택했던 결제자 불러오기
+function initPayer() {
+    const savedPayer = localStorage.getItem('lastPayer') || 'me'; // 기본값 'me'
+    const targetRadio = document.getElementById(`payer-${savedPayer}`);
+    if (targetRadio) targetRadio.checked = true;
+}
+
+// 결제자 선택이 바뀔 때마다 로컬 스토리지에 저장
+document.querySelectorAll('input[name="payer"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        localStorage.setItem('lastPayer', e.target.value);
+    });
+});
+
+initPayer();
+
+// --- 기존 기능들 ---
+
 function startRealtimeListener() {
     if (unsubscribe) unsubscribe();
 
@@ -46,7 +64,6 @@ function startRealtimeListener() {
             ...doc.data()
         }));
         
-        // 날짜 기준 최신순 정렬
         expenseList.sort((a, b) => {
             const dateA = a.realDate ? new Date(a.realDate) : new Date(a.timestamp);
             const dateB = b.realDate ? new Date(b.realDate) : new Date(b.timestamp);
@@ -66,8 +83,6 @@ document.addEventListener("visibilitychange", () => {
         startRealtimeListener();
     }
 });
-
-// --- 기능 함수들 ---
 
 window.addExpense = async function() {
     const desc = document.getElementById('desc').value;
@@ -98,6 +113,8 @@ window.addExpense = async function() {
         document.getElementById('desc').value = '';
         document.getElementById('price').value = '';
         document.getElementById('desc').focus();
+        
+        // 기록 후에도 payer는 건드리지 않으므로 선택 상태가 유지됩니다.
     } catch (e) { alert("저장 실패!"); }
 }
 
@@ -113,7 +130,6 @@ window.toggleLock = function(id) {
     }
 }
 
-// 수정 모드
 window.editExpense = function(id) {
     const item = expenseList.find(i => i.id === id);
     if (!item) return;
@@ -167,7 +183,6 @@ window.setEditTimeNow = function(id) {
     document.getElementById(`edit-date-${id}`).value = isoNow;
 }
 
-// ★ 수정된 저장 함수 (알림창 추가)
 window.saveEdit = async function(id) {
     const originalItem = expenseList.find(i => i.id === id);
     const rawDate = document.getElementById(`edit-date-${id}`).value;
@@ -206,10 +221,7 @@ window.saveEdit = async function(id) {
             payer: newPayer,
             type: newType
         });
-        
-        // ★ 저장 성공 알림창 추가
         alert("수정되었습니다.");
-        
     } catch (e) { alert("수정 실패!"); }
 }
 
@@ -265,7 +277,7 @@ window.downloadCSV = function() {
     });
 
     if (filteredList.length === 0) {
-        alert("저장할 내역이 없습니다 (현재 화면에 보이는 내역이 없음).");
+        alert("저장할 내역이 없습니다.");
         return;
     }
 
@@ -300,7 +312,6 @@ window.downloadCSV = function() {
 function renderList() {
     const list = document.getElementById('expense-list');
     
-    // 정산 계산은 항상 "전체 데이터" 기준
     let totalShared = 0;      
     let sharedMe = 0;         
     let sharedHyung = 0;      
@@ -327,7 +338,6 @@ function renderList() {
         }
     });
 
-    // 화면 표시는 "필터링된 데이터" 기준
     let filteredList = expenseList.filter(item => {
         const d = item.realDate ? new Date(item.realDate) : new Date(item.timestamp);
         
